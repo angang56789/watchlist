@@ -30,6 +30,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path, 'da
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
 @app.cli.command()
 @click.option('--drop', is_flag=True, help='Create after drop.')
 def initdb(drop):
@@ -38,6 +39,12 @@ def initdb(drop):
         db.drop_all()
     db.create_all()
     click.echo('Initialize the database.')
+
+
+@app.context_processor
+def inject_user():
+    user = User.query.first()
+    return dict(user=user)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,11 +61,13 @@ class Movie(db.Model):
 def index():
     user = User.query.first()
     movies = Movie.query.all()
-    return render_template('index.html', user=user, movies=movies)
+    return render_template('index.html', movies=movies)
+
 
 @app.route('/user/<name>')
 def user_page(name):
     return f'User: {escape(name)}'
+
 
 @app.route('/test')
 def test_url_for():
@@ -67,6 +76,12 @@ def test_url_for():
     print(url_for('test_url_for'))
     print(url_for('test_url_for', num=2))
     return 'test page'
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    user = User.query.first()
+    return render_template('404.html'), 404
 
 @app.cli.command()
 def forge():
