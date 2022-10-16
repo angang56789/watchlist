@@ -35,6 +35,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
+login_manager.login_message = '当前未登录，请登录'
+
 @login_manager.user_loader
 def load_user(user_id):
         user = User.query.get(int(user_id))
